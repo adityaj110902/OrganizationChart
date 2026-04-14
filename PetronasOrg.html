@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PETRONAS Malaysia - Organization Chart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FFFFFF;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-badge {
+            width: auto;
+            height: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .legend-promoter {
+            background: #14B8A6;
+        }
+
+        .legend-neutral {
+            background: #6B7280;
+        }
+
+        .legend-detractor {
+            background: #EF4444;
+        }
+
+        .legend-text {
+            font-size: 0.95rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .org-chart {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1a202c;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .org-tree {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .level {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            width: 100%;
+        }
+
+        .level:not(:first-child)::before {
+            content: '';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 2rem;
+            background: #cbd5e0;
+        }
+
+        .node {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            min-width: 240px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .node:hover {
+            border-color: #14B8A6;
+            box-shadow: 0 8px 24px rgba(20, 184, 166, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .node-profile {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #cbd5e0;
+        }
+
+        .node-profile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .node-profile-initials {
+            font-weight: 600;
+            font-size: 24px;
+            color: #4a5568;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sentiment-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: auto;
+            height: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .sentiment-promoter {
+            background: #14B8A6;
+        }
+
+        .sentiment-neutral {
+            background: #6B7280;
+        }
+
+        .sentiment-detractor {
+            background: #EF4444;
+        }
+
+        .node-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin: 0 0 6px 0;
+            color: #1a202c;
+        }
+
+        .node-title {
+            font-size: 13px;
+            color: #4a5568;
+            margin: 0 0 4px 0;
+            line-height: 1.4;
+        }
+
+        .node-subtitle {
+            font-size: 12px;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Modal Styles */
+        .details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .details-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-profile {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #cbd5e0;
+        }
+
+        .modal-profile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-profile-initials {
+            font-weight: 600;
+            font-size: 32px;
+            color: #4a5568;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header-content h2 {
+            margin: 0 0 4px 0;
+            font-size: 1.3rem;
+            color: #1a202c;
+        }
+
+        .modal-header-content p {
+            margin: 0;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a0aec0;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #1a202c;
+        }
+
+        .sentiment-row {
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .sentiment-indicator {
+            width: auto;
+            height: auto;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .sentiment-info p {
+            margin: 0;
+        }
+
+        .sentiment-info-label {
+            font-size: 11px;
+            color: #a0aec0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sentiment-info-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-top: 2px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #a0aec0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a202c;
+        }
+
+        .info-value.email {
+            color: #14B8A6;
+            text-decoration: none;
+        }
+
+        .info-value.email:hover {
+            text-decoration: underline;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 11px 16px;
+            border: 1px solid #cbd5e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a202c;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f7fafc;
+            border-color: #14B8A6;
+            color: #14B8A6;
+        }
+
+        .action-btn.primary {
+            background: #14B8A6;
+            border-color: #14B8A6;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .node {
+                min-width: 180px;
+                padding: 1rem;
+            }
+
+            .level {
+                gap: 1.5rem;
+            }
+
+            .org-tree {
+                gap: 2.5rem;
+            }
+
+            .modal-content {
+                max-width: 90%;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .details-modal,
+            .action-buttons {
+                display: none;
+            }
+
+            .node {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PETRONAS Malaysia</h1>
+            <p>Corporate Organizational Structure</p>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-badge legend-promoter">Promoter</div>
+                <span class="legend-text">Highly Engaged</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-badge legend-neutral">Neutral</div>
+                <span class="legend-text">Monitor</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-badge legend-detractor">Detractor</div>
+                <span class="legend-text">At Risk</span>
+            </div>
+        </div>
+
+        <div class="org-chart">
+            <div class="chart-container">
+                <div class="org-tree">
+                    
+                    <!-- Level 1: Group CEO -->
+                    <div class="level" style="margin-top: 0;">
+                        <div class="node" data-id="1" style="min-width: 280px;">
+                            <div class="sentiment-badge sentiment-promoter">Promoter</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">PA</div>
+                            </div>
+                            <p class="node-name">Patrick Roberstion</p>
+                            <p class="node-title">Chief Financial Officer</p>
+                        </div>
+                    </div>
+
+                    <!-- Level 2: Regional/Functional Leads -->
+                    <div class="level">
+                        <div class="node" data-id="2">
+                            <div class="sentiment-badge sentiment-neutral">Neutral</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">TS</div>
+                            </div>
+                            <p class="node-name">Tan Sri Dato Ahmad</p>
+                            <p class="node-title">Chief Financial Officer</p>
+                            <p class="node-subtitle">PETRONAS Malaysia</p>
+                        </div>
+                        <div class="node" data-id="3">
+                            <div class="sentiment-badge sentiment-neutral">Neutral</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">RA</div>
+                            </div>
+                            <p class="node-name">Raniya Ahmad Ahmad</p>
+                            <p class="node-title">Finance Director</p>
+                            <p class="node-subtitle">Financial Operations</p>
+                        </div>
+                        <div class="node" data-id="4">
+                            <div class="sentiment-badge sentiment-promoter">Promoter</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">NA</div>
+                            </div>
+                            <p class="node-name">Nur Aisyah Binti Ahmad</p>
+                            <p class="node-title">Compliance Officer</p>
+                            <p class="node-subtitle">Risk Management</p>
+                        </div>
+                    </div>
+
+                    <!-- Level 3: Department Heads -->
+                    <div class="level">
+                        <div class="node" data-id="5">
+                            <div class="sentiment-badge sentiment-neutral">Neutral</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">HB</div>
+                            </div>
+                            <p class="node-name">Hafizuddin Bin Zulkifli</p>
+                            <p class="node-title">Advisor - Marketing</p>
+                            <p class="node-subtitle">Strategic Marketing</p>
+                        </div>
+                        <div class="node" data-id="6">
+                            <div class="sentiment-badge sentiment-promoter">Promoter</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">SB</div>
+                            </div>
+                            <p class="node-name">Syafiq Bin Hairuddin</p>
+                            <p class="node-title">Advisor - Strategy</p>
+                            <p class="node-subtitle">Business Strategy</p>
+                        </div>
+                        <div class="node" data-id="7">
+                            <div class="sentiment-badge sentiment-neutral">Neutral</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">NB</div>
+                            </div>
+                            <p class="node-name">Nurul Binti Aminuddin</p>
+                            <p class="node-title">Audit Head</p>
+                            <p class="node-subtitle">Internal Audit</p>
+                        </div>
+                        <div class="node" data-id="8">
+                            <div class="sentiment-badge sentiment-detractor">Detractor</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">AF</div>
+                            </div>
+                            <p class="node-name">Ahmad Fariz Bin Razali</p>
+                            <p class="node-title">Financial Advisor</p>
+                            <p class="node-subtitle">Advisory Services</p>
+                        </div>
+                        <div class="node" data-id="9">
+                            <div class="sentiment-badge sentiment-promoter">Promoter</div>
+                            <div class="node-profile">
+                                <div class="node-profile-initials">NA</div>
+                            </div>
+                            <p class="node-name">Nurul Ain Binti Hashim</p>
+                            <p class="node-title">Chief Financial Officer</p>
+                            <p class="node-subtitle">Finance Division</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="details-modal" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            
+            <div class="modal-profile">
+                <div id="modal-profile-content"></div>
+            </div>
+
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <h2 id="modal-name">Name</h2>
+                    <p id="modal-title">Title</p>
+                </div>
+            </div>
+
+            <div class="sentiment-row">
+                <div class="sentiment-indicator" id="modal-sentiment"></div>
+                <div class="sentiment-info">
+                    <p class="sentiment-info-label">Relationship Type</p>
+                    <p class="sentiment-info-text" id="modal-sentiment-text">—</p>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <a class="info-value email" href="mailto:" id="modal-email">—</a>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value" id="modal-phone">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Department</span>
+                    <span class="info-value" id="modal-department">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Reports To</span>
+                    <span class="info-value" id="modal-reports">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Location</span>
+                    <span class="info-value" id="modal-location">—</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn" onclick="sendEmail()">Send Email</button>
+                <button class="action-btn primary" onclick="scheduleCall()">Schedule Call</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const orgData = {
+            1: {
+                name: 'Patrick Roberstion',
+                title: 'Chief Financial Officer',
+                email: 'patrick.roberstion@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Finance & Accounting',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'promoter',
+                reports: 'Board of Directors',
+                initials: 'PA'
+            },
+            2: {
+                name: 'Tan Sri Dato Ahmad Seri Mohd Bokke Salleh',
+                title: 'Chief Financial Officer',
+                email: 'tan.sri@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Finance & Accounting',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'neutral',
+                reports: 'Executive Committee',
+                initials: 'TS'
+            },
+            3: {
+                name: 'Raniya Ahmad Ahmad',
+                title: 'Finance Director',
+                email: 'raniya.ahmad@petronas.com.my',
+                phone: '+60 12-315 1811',
+                department: 'Financial Operations',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'neutral',
+                reports: 'CFO',
+                initials: 'RA'
+            },
+            4: {
+                name: 'Nur Aisyah Binti Ahmad',
+                title: 'Compliance Officer',
+                email: 'nur.aisyah@petronas.com.my',
+                phone: '+60 3-2145 6789',
+                department: 'Risk Management',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'promoter',
+                reports: 'Finance Director',
+                initials: 'NA'
+            },
+            5: {
+                name: 'Hafizuddin Bin Zulkifli',
+                title: 'Advisor - Marketing',
+                email: 'hafizuddin.zulkifli@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Strategic Marketing',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'neutral',
+                reports: 'CFO',
+                initials: 'HB'
+            },
+            6: {
+                name: 'Syafiq Bin Hairuddin',
+                title: 'Advisor - Strategy',
+                email: 'syafiq.hairuddin@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Business Strategy',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'promoter',
+                reports: 'Executive Management',
+                initials: 'SB'
+            },
+            7: {
+                name: 'Nurul Binti Aminuddin',
+                title: 'Audit Head',
+                email: 'nurul.aminuddin@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Internal Audit',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'neutral',
+                reports: 'CFO',
+                initials: 'NB'
+            },
+            8: {
+                name: 'Ahmad Fariz Bin Razali',
+                title: 'Financial Advisor',
+                email: 'ahmad.fariz@petronas.com.my',
+                phone: '+60 7234671-5',
+                department: 'Advisory Services',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'detractor',
+                reports: 'Finance Director',
+                initials: 'AF'
+            },
+            9: {
+                name: 'Nurul Ain Binti Hashim',
+                title: 'Chief Financial Officer',
+                email: 'nurul.ain@petronas.com.my',
+                phone: '+60 12-345 6789',
+                department: 'Finance Division',
+                location: 'Kuala Lumpur, Malaysia',
+                sentiment: 'promoter',
+                reports: 'CFO',
+                initials: 'NA'
+            }
+        };
+
+        // Add event listeners to all nodes
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                showModal(id);
+            });
+        });
+
+        function showModal(id) {
+            const data = orgData[id];
+            const modal = document.getElementById('modal');
+            
+            // Set profile picture
+            const profileContent = document.getElementById('modal-profile-content');
+            profileContent.innerHTML = `<div class="modal-profile-initials">${data.initials}</div>`;
+
+            document.getElementById('modal-name').textContent = data.name;
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-email').textContent = data.email;
+            document.getElementById('modal-email').href = 'mailto:' + data.email;
+            document.getElementById('modal-phone').textContent = data.phone;
+            document.getElementById('modal-department').textContent = data.department;
+            document.getElementById('modal-reports').textContent = data.reports;
+            document.getElementById('modal-location').textContent = data.location;
+            
+            const sentimentEl = document.getElementById('modal-sentiment');
+            const sentimentTextEl = document.getElementById('modal-sentiment-text');
+            
+            if (data.sentiment === 'promoter') {
+                sentimentEl.className = 'sentiment-indicator sentiment-promoter';
+                sentimentEl.textContent = 'Promoter';
+                sentimentTextEl.textContent = 'Promoter - Highly engaged stakeholder';
+            } else if (data.sentiment === 'detractor') {
+                sentimentEl.className = 'sentiment-indicator sentiment-detractor';
+                sentimentEl.textContent = 'Detractor';
+                sentimentTextEl.textContent = 'Detractor - At-risk relationship';
+            } else {
+                sentimentEl.className = 'sentiment-indicator sentiment-neutral';
+                sentimentEl.textContent = 'Neutral';
+                sentimentTextEl.textContent = 'Neutral - Monitor engagement';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function sendEmail() {
+            const email = document.getElementById('modal-email').textContent;
+            window.location.href = 'mailto:' + email;
+        }
+
+        function scheduleCall() {
+            window.open('https://presales.businessbywire.com/appgts/businessnext/NewCogent/Event?x=wmlptkyqwxpv4bxdnz3cm5b2atztctalsctgegxyzvjxplhe7zf5jmndyyxb63ltyskrwzcg9bjed8zezbmrdv9ulz&mdi=-1', '_blank');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
